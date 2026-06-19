@@ -103,7 +103,7 @@ function ShiftStatus({ s }: { s: string }) {
 
 function ShiftDialog({ onDone }: { onDone: () => void }) {
   const { data: staff = [] } = useQuery({ queryKey: ["staff-active"], queryFn: async () => (await supabase.from("staff").select("id, full_name").eq("active", true).order("full_name")).data ?? [] });
-  const [form, setForm] = useState({ staff_id: "", shift_date: todayISO(), start_time: "07:00", end_time: "19:00", location: "Quartel Central", status: "scheduled" });
+  const [form, setForm] = useState({ staff_id: "", shift_date: todayISO(), start_time: "07:00", end_time: "19:00", location: "Quartel Central", status: "scheduled" as const });
   const [saving, setSaving] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
