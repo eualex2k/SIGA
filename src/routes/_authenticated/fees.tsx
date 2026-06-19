@@ -156,7 +156,7 @@ function GenerateFeesDialog() {
     const { data: assoc } = await supabase.from("associates").select("id, monthly_fee").eq("status", "active");
     const refMonth = month.slice(0, 7) + "-01";
     const due = month.slice(0, 7) + "-10";
-    const rows = (assoc ?? []).map((a: any) => ({ associate_id: a.id, reference_month: refMonth, amount: a.monthly_fee, due_date: due, status: "pending" }));
+    const rows = (assoc ?? []).map((a: any) => ({ associate_id: a.id, reference_month: refMonth, amount: a.monthly_fee, due_date: due, status: "pending" as const }));
     const { error } = await supabase.from("monthly_fees").upsert(rows, { onConflict: "associate_id,reference_month", ignoreDuplicates: true });
     setSaving(false);
     if (error) { toast.error("Erro", { description: error.message }); return; }

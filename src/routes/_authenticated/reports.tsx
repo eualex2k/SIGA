@@ -118,13 +118,13 @@ function ReportsPage() {
       <Card>
         <CardHeader><CardTitle className="text-base uppercase tracking-wider text-muted-foreground">Resumo de mensalidades</CardTitle></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-4">
-          {["paid", "pending", "overdue", "cancelled"].map((st) => {
-            const label = { paid: "Pagas", pending: "Pendentes", overdue: "Em atraso", cancelled: "Canceladas" }[st as keyof typeof st]!;
+          {(["paid", "pending", "overdue", "cancelled"] as const).map((st) => {
+            const labels = { paid: "Pagas", pending: "Pendentes", overdue: "Em atraso", cancelled: "Canceladas" };
             const items = (data?.fees ?? []).filter((f: any) => f.status === st);
             const total = items.reduce((s: number, f: any) => s + Number(f.amount), 0);
             return (
               <div key={st} className="rounded-md border border-border/60 bg-card/60 p-4">
-                <p className="text-xs uppercase text-muted-foreground">{label}</p>
+                <p className="text-xs uppercase text-muted-foreground">{labels[st]}</p>
                 <p className="mt-2 text-2xl font-black">{items.length}</p>
                 <p className="text-sm font-mono text-muted-foreground">{fmtBRL(total)}</p>
               </div>
