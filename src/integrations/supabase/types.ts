@@ -142,6 +142,7 @@ export type Database = {
           fee_id: string | null
           id: string
           payment_method: string | null
+          receipt_path: string | null
           reference: string | null
           transaction_date: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -156,6 +157,7 @@ export type Database = {
           fee_id?: string | null
           id?: string
           payment_method?: string | null
+          receipt_path?: string | null
           reference?: string | null
           transaction_date?: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -170,6 +172,7 @@ export type Database = {
           fee_id?: string | null
           id?: string
           payment_method?: string | null
+          receipt_path?: string | null
           reference?: string | null
           transaction_date?: string
           type?: Database["public"]["Enums"]["transaction_type"]

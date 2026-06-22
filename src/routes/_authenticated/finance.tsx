@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Wallet, Plus, TrendingUp, TrendingDown, Trash2 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { Wallet, Plus, TrendingUp, TrendingDown, Trash2, Eye } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtBRL, fmtDate, todayISO } from "@/lib/format";
+import { useAuth } from "@/hooks/useAuth";
+import { MembershipPaymentDialog } from "@/components/MembershipPaymentDialog";
 
 export const Route = createFileRoute("/_authenticated/finance")({
   component: FinancePage,
@@ -48,11 +50,35 @@ function FinancePage() {
 
   const del = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("finance_transactions").delete().eq("id", id);
-      if (error) throw error;
+      // Fetch transaction to get receipt_path before deletion
+      const { data: tx, error: fetchErr } = await supabase
+        .from("finance_transactions")
+        .select("receipt_path")
+        .eq("id", id)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      // Delete the transaction record
+      const { error: delErr } = await supabase.from("finance_transactions").delete().eq("id", id);
+      if (delErr) throw delErr;
+
+      // If a receipt file exists, delete it from storage
+      if (tx?.receipt_path) {
+        const { error: storageErr } = await supabase.storage.from("receipts").remove([tx.receipt_path]);
+        if (storageErr) console.error("Failed to delete receipt file:", storageErr);
+      }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["finance"] }); toast.success("Lançamento removido"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["finance"] });
+      toast.success("Lançamento removido");
+    },
   });
+
+  const handleViewReceipt = async (receiptPath: string) => {
+    const { data, error } = await supabase.storage.from("receipts").createSignedUrl(receiptPath, 60);
+    if (error) { toast.error("Erro ao gerar URL do comprovante"); return; }
+    window.open(data?.signedUrl, "_blank");
+  };
 
   return (
     <div className="space-y-6">
@@ -61,7 +87,7 @@ function FinancePage() {
         subtitle="Receitas, despesas e fluxo de caixa"
         icon={<Wallet className="h-5 w-5" />}
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Select value={period} onValueChange={setPeriod}>
               <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -79,14 +105,7 @@ function FinancePage() {
               </DialogTrigger>
               <TxDialog onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["finance"] }); }} />
             </Dialog>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="secondary" className="glow-blue">
-                  <CreditCard className="mr-2 h-4 w-4" /> Pagamento Mensalidade
-                </Button>
-              </DialogTrigger>
-              <MembershipPaymentDialog onDone={() => { qc.invalidateQueries({ queryKey: ["finance"] }); }} />
-            </Dialog>
+            <MembershipPaymentDialog onDone={() => { qc.invalidateQueries({ queryKey: ["finance"] }); }} />
           </div>
         }
       />
@@ -107,11 +126,22 @@ function FinancePage() {
           <Card>
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Descrição</TableHead><TableHead className="hidden md:table-cell">Categoria</TableHead><TableHead>Tipo</TableHead><TableHead className="text-right">Valor</TableHead><TableHead className="w-12" /></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead className="hidden md:table-cell">Categoria</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="w-24">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
-                  {isLoading ? (<TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Carregando…</TableCell></TableRow>)
-                  : filtered.length === 0 ? (<TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Sem lançamentos.</TableCell></TableRow>)
-                  : filtered.map((t: any) => (
+                  {isLoading ? (
+                    <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Carregando…</TableCell></TableRow>
+                  ) : filtered.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Sem lançamentos.</TableCell></TableRow>
+                  ) : filtered.map((t: any) => (
                     <TableRow key={t.id}>
                       <TableCell className="text-sm text-muted-foreground">{fmtDate(t.transaction_date)}</TableCell>
                       <TableCell>
@@ -134,18 +164,17 @@ function FinancePage() {
                         {t.type === "income" ? "+" : "−"} {fmtBRL(t.amount)}
                       </TableCell>
                       <TableCell>
-                      {t.receipt_path && (
-                        <Button size="icon" variant="ghost" onClick={async () => {
-                          const { data, error } = await supabase.storage.from('receipts').createSignedUrl(t.receipt_path, 60);
-                          if (error) { toast.error('Erro ao gerar URL'); return; }
-                          window.open(data?.signedUrl, '_blank');
-                        }} className="text-primary hover:text-primary">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button size="icon" variant="ghost" onClick={() => del.mutate(t.id)} className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button></TableCell>
+                        <div className="flex gap-1">
+                          {t.receipt_path && (
+                            <Button size="icon" variant="ghost" onClick={() => handleViewReceipt(t.receipt_path)} title="Ver comprovante">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button size="icon" variant="ghost" onClick={() => del.mutate(t.id)} className="text-destructive hover:text-destructive" title="Excluir">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -158,16 +187,17 @@ function FinancePage() {
   );
 }
 
+/* ─── Novo Lançamento (com upload de comprovante) ─── */
 function TxDialog({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(todayISO());
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [method, setMethod] = useState("PIX");
-  const [type, setType] = useState("expense");
   const [notes, setNotes] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
   const { data: cats = [] } = useQuery({
@@ -180,11 +210,31 @@ function TxDialog({ onDone }: { onDone: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const { error: uploadError, data: uploadData } = receiptFile ? await supabase.storage.from('receipts').upload(`${user?.id}/${Date.now()}_${receiptFile.name}`, receiptFile) : { error: null, data: null };
-    if (uploadError) { toast.error("Erro ao enviar comprovante"); setSaving(false); return; }
-    const receiptPath = uploadData?.path || null;
+
+    // Upload receipt if provided
+    let receiptPath: string | null = null;
+    if (receiptFile) {
+      const filePath = `${user?.id ?? "anon"}/${Date.now()}_${receiptFile.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("receipts")
+        .upload(filePath, receiptFile);
+      if (uploadError) {
+        toast.error("Erro ao enviar comprovante");
+        setSaving(false);
+        return;
+      }
+      receiptPath = uploadData?.path ?? null;
+    }
+
     const { error } = await supabase.from("finance_transactions").insert({
-      type, amount: Number(amount), description, transaction_date: date, category_id: categoryId, payment_method: method, reference: notes || null, receipt_path: receiptPath,
+      type,
+      amount: Number(amount),
+      description,
+      transaction_date: date,
+      category_id: categoryId,
+      payment_method: method,
+      reference: notes || null,
+      receipt_path: receiptPath,
     });
     setSaving(false);
     if (error) { toast.error("Erro", { description: error.message }); return; }
@@ -214,10 +264,6 @@ function TxDialog({ onDone }: { onDone: () => void }) {
             <SelectContent>{cats4Type.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label>Comprovante (JPEG, PNG, PDF)</Label>
-          <Input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] ?? null)} />
-        </div>
         <div className="space-y-2"><Label>Forma de pagto</Label>
           <Select value={method} onValueChange={setMethod}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -225,6 +271,10 @@ function TxDialog({ onDone }: { onDone: () => void }) {
               <SelectItem value="PIX">PIX</SelectItem><SelectItem value="Dinheiro">Dinheiro</SelectItem><SelectItem value="Cartão">Cartão</SelectItem><SelectItem value="Transferência">Transferência</SelectItem><SelectItem value="Boleto">Boleto</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+        <div className="sm:col-span-2 space-y-2">
+          <Label>Comprovante (JPEG, PNG, PDF)</Label>
+          <Input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] ?? null)} />
         </div>
         <div className="sm:col-span-2 space-y-2"><Label>Observação</Label><Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         <DialogFooter className="sm:col-span-2"><Button type="submit" disabled={saving} className="glow-red">{saving ? "Salvando…" : "Registrar"}</Button></DialogFooter>
