@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Wallet, Plus, TrendingUp, TrendingDown, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,8 +72,20 @@ function FinancePage() {
               </SelectContent>
             </Select>
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild><Button className="glow-red"><Plus className="mr-2 h-4 w-4" /> Lançamento</Button></DialogTrigger>
+              <DialogTrigger asChild>
+                <Button className="glow-red">
+                  <Plus className="mr-2 h-4 w-4" /> Lançamento
+                </Button>
+              </DialogTrigger>
               <TxDialog onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["finance"] }); }} />
+            </Dialog>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="secondary" className="glow-blue">
+                  <CreditCard className="mr-2 h-4 w-4" /> Pagamento Mensalidade
+                </Button>
+              </DialogTrigger>
+              <MembershipPaymentDialog onDone={() => { qc.invalidateQueries({ queryKey: ["finance"] }); }} />
             </Dialog>
           </div>
         }
@@ -121,7 +133,19 @@ function FinancePage() {
                       <TableCell className={`text-right font-mono font-semibold ${t.type === "income" ? "text-emerald-400" : "text-primary"}`}>
                         {t.type === "income" ? "+" : "−"} {fmtBRL(t.amount)}
                       </TableCell>
-                      <TableCell><Button size="icon" variant="ghost" onClick={() => del.mutate(t.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></TableCell>
+                      <TableCell>
+                      {t.receipt_path && (
+                        <Button size="icon" variant="ghost" onClick={async () => {
+                          const { data, error } = await supabase.storage.from('receipts').createSignedUrl(t.receipt_path, 60);
+                          if (error) { toast.error('Erro ao gerar URL'); return; }
+                          window.open(data?.signedUrl, '_blank');
+                        }} className="text-primary hover:text-primary">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button size="icon" variant="ghost" onClick={() => del.mutate(t.id)} className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -135,12 +159,14 @@ function FinancePage() {
 }
 
 function TxDialog({ onDone }: { onDone: () => void }) {
-  const [type, setType] = useState<"income" | "expense">("expense");
+  const { user } = useAuth();
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(todayISO());
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [method, setMethod] = useState("PIX");
+  const [type, setType] = useState("expense");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -154,8 +180,11 @@ function TxDialog({ onDone }: { onDone: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    const { error: uploadError, data: uploadData } = receiptFile ? await supabase.storage.from('receipts').upload(`${user?.id}/${Date.now()}_${receiptFile.name}`, receiptFile) : { error: null, data: null };
+    if (uploadError) { toast.error("Erro ao enviar comprovante"); setSaving(false); return; }
+    const receiptPath = uploadData?.path || null;
     const { error } = await supabase.from("finance_transactions").insert({
-      type, amount: Number(amount), description, transaction_date: date, category_id: categoryId, payment_method: method, reference: notes || null,
+      type, amount: Number(amount), description, transaction_date: date, category_id: categoryId, payment_method: method, reference: notes || null, receipt_path: receiptPath,
     });
     setSaving(false);
     if (error) { toast.error("Erro", { description: error.message }); return; }
@@ -184,6 +213,10 @@ function TxDialog({ onDone }: { onDone: () => void }) {
             <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
             <SelectContent>{cats4Type.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
           </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Comprovante (JPEG, PNG, PDF)</Label>
+          <Input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] ?? null)} />
         </div>
         <div className="space-y-2"><Label>Forma de pagto</Label>
           <Select value={method} onValueChange={setMethod}>
