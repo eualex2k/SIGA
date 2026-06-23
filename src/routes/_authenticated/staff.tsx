@@ -45,6 +45,7 @@ function StaffPage() {
   const del = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("staff").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["staff"] }); toast.success("Colaborador removido"); },
+    onError: (e: any) => toast.error("Falha ao remover colaborador", { description: e.message }),
   });
 
   return (

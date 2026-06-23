@@ -32,6 +32,7 @@ function InventoryPage() {
   const del = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("inventory_items").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["inventory"] }); toast.success("Item removido"); },
+    onError: (e: any) => toast.error("Falha ao remover item", { description: e.message }),
   });
 
   const lowCount = items.filter((i: any) => i.quantity <= i.min_quantity).length;

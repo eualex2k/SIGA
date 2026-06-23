@@ -72,6 +72,9 @@ function FinancePage() {
       qc.invalidateQueries({ queryKey: ["finance"] });
       toast.success("Lançamento removido");
     },
+    onError: (err: any) => {
+      toast.error("Erro ao remover lançamento", { description: err.message });
+    },
   });
 
   const handleViewReceipt = async (receiptPath: string) => {

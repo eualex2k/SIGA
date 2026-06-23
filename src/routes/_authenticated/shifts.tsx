@@ -40,6 +40,7 @@ function ShiftsPage() {
   const del = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("shifts").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["shifts"] }); toast.success("Escala removida"); },
+    onError: (e: any) => toast.error("Falha ao remover escala", { description: e.message }),
   });
 
   return (
