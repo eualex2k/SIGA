@@ -254,7 +254,7 @@ function AssociateDialog({ editing, onDone }: { editing: Associate | null; onDon
 
   if (!editing) {
     return (
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-lg">
         <DialogHeader><DialogTitle>Novo associado</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           {formFields}
@@ -264,7 +264,7 @@ function AssociateDialog({ editing, onDone }: { editing: Associate | null; onDon
   }
 
   return (
-    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
       <DialogHeader><DialogTitle>Editar associado</DialogTitle></DialogHeader>
       <Tabs defaultValue="dados" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
