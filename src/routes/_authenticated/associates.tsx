@@ -254,7 +254,7 @@ function AssociateDialog({ editing, onDone }: { editing: Associate | null; onDon
 
   if (!editing) {
     return (
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Novo associado</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           {formFields}
