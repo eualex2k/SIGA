@@ -228,7 +228,7 @@ function AssociateDialog({ editing, onDone }: { editing: Associate | null; onDon
       <div className="space-y-2"><Label>CPF</Label><Input value={form.cpf ?? ""} onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })} /></div>
       <div className="space-y-2"><Label>Telefone</Label><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} /></div>
       <div className="space-y-2"><Label>E-mail</Label><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-      <div className="space-y-2"><Label>Nascimento (DD/MM/AAAA)</Label><Input placeholder="DD/MM/AAAA" value={form.birth_date_input ?? ""} onChange={(e) => setForm({ ...form, birth_date_input: maskDate(e.target.value) })} /></div>
+      <div className="space-y-2"><Label>Data de Nascimento</Label><Input placeholder="DD/MM/AAAA" value={form.birth_date_input ?? ""} onChange={(e) => setForm({ ...form, birth_date_input: maskDate(e.target.value) })} /></div>
       <div className="sm:col-span-2 space-y-2"><Label>Endereço</Label><Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
       <div className="space-y-2"><Label>Cidade</Label><Input value={form.city ?? ""} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div>
       <div className="space-y-2"><Label>UF</Label><Input maxLength={2} value={form.state ?? ""} onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase() })} /></div>
