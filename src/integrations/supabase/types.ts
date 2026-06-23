@@ -14,11 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      associate_documents: {
+        Row: {
+          associate_id: string
+          created_at: string
+          file_path: string
+          id: string
+          name: string
+        }
+        Insert: {
+          associate_id: string
+          created_at?: string
+          file_path: string
+          id?: string
+          name: string
+        }
+        Update: {
+          associate_id?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "associate_documents_associate_id_fkey"
+            columns: ["associate_id"]
+            isOneToOne: false
+            referencedRelation: "associates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       associates: {
         Row: {
           address: string | null
           birth_date: string | null
           city: string | null
+          competencies: string | null
           cpf: string | null
           created_at: string
           email: string | null
@@ -38,6 +71,7 @@ export type Database = {
           address?: string | null
           birth_date?: string | null
           city?: string | null
+          competencies?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
@@ -57,6 +91,7 @@ export type Database = {
           address?: string | null
           birth_date?: string | null
           city?: string | null
+          competencies?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null

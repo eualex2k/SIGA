@@ -45,3 +45,53 @@ export const initials = (name?: string | null) =>
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
+
+export const maskDate = (v: string) => {
+  const d = onlyDigits(v).slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+};
+
+export const maskMonth = (v: string) => {
+  const d = onlyDigits(v).slice(0, 6);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}/${d.slice(2)}`;
+};
+
+export const parseDateToISO = (val: string | null | undefined) => {
+  if (!val) return null;
+  const cleaned = onlyDigits(val);
+  if (cleaned.length !== 8) return null;
+  const dd = cleaned.slice(0, 2);
+  const mm = cleaned.slice(2, 4);
+  const yyyy = cleaned.slice(4, 8);
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+export const parseISOToDateInput = (iso: string | null | undefined) => {
+  if (!iso) return "";
+  const cleaned = iso.slice(0, 10);
+  const parts = cleaned.split("-");
+  if (parts.length !== 3) return "";
+  const [yyyy, mm, dd] = parts;
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+export const parseMonthToISO = (val: string | null | undefined) => {
+  if (!val) return null;
+  const cleaned = onlyDigits(val);
+  if (cleaned.length !== 6) return null;
+  const mm = cleaned.slice(0, 2);
+  const yyyy = cleaned.slice(2, 6);
+  return `${yyyy}-${mm}-01`;
+};
+
+export const parseISOToMonthInput = (iso: string | null | undefined) => {
+  if (!iso) return "";
+  const cleaned = iso.slice(0, 7);
+  const parts = cleaned.split("-");
+  if (parts.length !== 2) return "";
+  const [yyyy, mm] = parts;
+  return `${mm}/${yyyy}`;
+};
