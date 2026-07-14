@@ -708,6 +708,7 @@ CREATE TABLE public.certificates (
 
   certificate_code text NOT NULL UNIQUE,
 
+  verification_hash text UNIQUE,
 
   issue_date date NOT NULL DEFAULT current_date,
 
