@@ -693,3 +693,395 @@ BEFORE UPDATE ON public.assessments
 FOR EACH ROW
 EXECUTE FUNCTION public.tg_set_updated_at();
 
+
+-- ============ CERTIFICATES ============
+
+CREATE TABLE public.certificates (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  enrollment_id uuid NOT NULL
+  REFERENCES public.enrollments(id)
+  ON DELETE CASCADE,
+
+
+  certificate_code text NOT NULL UNIQUE,
+
+
+  issue_date date NOT NULL DEFAULT current_date,
+
+
+  status public.certificate_status NOT NULL DEFAULT 'pending',
+
+
+  certificate_url text,
+
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+
+  updated_at timestamptz NOT NULL DEFAULT now()
+
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.certificates
+TO authenticated;
+
+
+GRANT ALL
+ON public.certificates
+TO service_role;
+
+
+
+ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "certificates_all_authenticated"
+ON public.certificates
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE TRIGGER trg_certificates_updated
+BEFORE UPDATE ON public.certificates
+FOR EACH ROW
+EXECUTE FUNCTION public.tg_set_updated_at();
+
+
+
+CREATE INDEX idx_certificates_code
+ON public.certificates(certificate_code);
+
+
+
+-- ============ STUDENT CARDS ============
+
+CREATE TABLE public.student_cards (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  student_id uuid NOT NULL
+  REFERENCES public.students(id)
+  ON DELETE CASCADE,
+
+
+  card_number text UNIQUE,
+
+
+  issue_date date NOT NULL DEFAULT current_date,
+
+
+  expiration_date date,
+
+
+  qr_code text,
+
+
+  active boolean NOT NULL DEFAULT true,
+
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+
+  updated_at timestamptz NOT NULL DEFAULT now()
+
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.student_cards
+TO authenticated;
+
+
+GRANT ALL
+ON public.student_cards
+TO service_role;
+
+
+
+ALTER TABLE public.student_cards ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "student_cards_all_authenticated"
+ON public.student_cards
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE TRIGGER trg_student_cards_updated
+BEFORE UPDATE ON public.student_cards
+FOR EACH ROW
+EXECUTE FUNCTION public.tg_set_updated_at();
+
+
+
+CREATE INDEX idx_student_cards_number
+ON public.student_cards(card_number);
+
+
+
+-- ============ COURSE PAYMENTS ============
+
+CREATE TABLE public.course_payments (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  enrollment_id uuid NOT NULL
+  REFERENCES public.enrollments(id)
+  ON DELETE CASCADE,
+
+
+  amount numeric(10,2) NOT NULL,
+
+
+  payment_date date DEFAULT current_date,
+
+
+  payment_method text,
+
+
+  status text DEFAULT 'pending',
+
+
+  reference text,
+
+
+  notes text,
+
+
+  created_at timestamptz NOT NULL DEFAULT now()
+
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.course_payments
+TO authenticated;
+
+
+GRANT ALL
+ON public.course_payments
+TO service_role;
+
+
+
+ALTER TABLE public.course_payments ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "course_payments_all_authenticated"
+ON public.course_payments
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE INDEX idx_course_payments_enrollment
+ON public.course_payments(enrollment_id);
+
+
+
+-- ============ COURSE FILES ============
+
+CREATE TABLE public.course_files (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  course_id uuid
+  REFERENCES public.courses(id)
+  ON DELETE CASCADE,
+
+
+  class_id uuid
+  REFERENCES public.class_groups(id)
+  ON DELETE CASCADE,
+
+
+  name text NOT NULL,
+
+
+  file_type text,
+
+
+  file_url text NOT NULL,
+
+
+  description text,
+
+
+  created_at timestamptz NOT NULL DEFAULT now()
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.course_files
+TO authenticated;
+
+
+GRANT ALL
+ON public.course_files
+TO service_role;
+
+
+
+ALTER TABLE public.course_files ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "course_files_all_authenticated"
+ON public.course_files
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE INDEX idx_course_files_course
+ON public.course_files(course_id);
+
+
+
+-- ============ TRAINING DOCUMENTS ============
+
+CREATE TABLE public.training_documents (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  name text NOT NULL,
+
+
+  document_type text,
+
+
+  file_url text NOT NULL,
+
+
+  course_id uuid
+  REFERENCES public.courses(id)
+  ON DELETE SET NULL,
+
+
+  class_id uuid
+  REFERENCES public.class_groups(id)
+  ON DELETE SET NULL,
+
+
+  created_at timestamptz NOT NULL DEFAULT now()
+
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.training_documents
+TO authenticated;
+
+
+GRANT ALL
+ON public.training_documents
+TO service_role;
+
+
+
+ALTER TABLE public.training_documents ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "training_documents_all_authenticated"
+ON public.training_documents
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+-- ============ CAPACITATION AUDIT LOG ============
+
+CREATE TABLE public.training_audit_logs (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  user_id uuid
+  REFERENCES auth.users(id)
+  ON DELETE SET NULL,
+
+
+  action text NOT NULL,
+
+
+  entity text,
+
+
+  entity_id uuid,
+
+
+  metadata jsonb,
+
+
+  created_at timestamptz NOT NULL DEFAULT now()
+
+);
+
+
+
+GRANT SELECT, INSERT
+ON public.training_audit_logs
+TO authenticated;
+
+
+GRANT ALL
+ON public.training_audit_logs
+TO service_role;
+
+
+
+ALTER TABLE public.training_audit_logs ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "training_audit_insert"
+ON public.training_audit_logs
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+
+
+
+CREATE POLICY "training_audit_select"
+ON public.training_audit_logs
+FOR SELECT
+TO authenticated
+USING (
+  public.has_role(auth.uid(),'admin')
+  OR user_id = auth.uid()
+);
