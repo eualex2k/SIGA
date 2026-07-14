@@ -414,3 +414,282 @@ FOR ALL
 TO authenticated
 USING (true)
 WITH CHECK (true);
+
+-- ============ STUDENTS ============
+
+CREATE TABLE public.students (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  associate_id uuid
+  REFERENCES public.associates(id)
+  ON DELETE SET NULL,
+
+  full_name text NOT NULL,
+
+  cpf text UNIQUE,
+
+  rg text,
+
+  birth_date date,
+
+  phone text,
+
+  email text,
+
+  address text,
+
+  city text DEFAULT 'Uiraúna',
+
+  state text DEFAULT 'PB',
+
+  source text,
+
+  photo_url text,
+
+  notes text,
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+  updated_at timestamptz NOT NULL DEFAULT now()
+
+);
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.students
+TO authenticated;
+
+
+GRANT ALL
+ON public.students
+TO service_role;
+
+
+ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "students_all_authenticated"
+ON public.students
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE TRIGGER trg_students_updated
+BEFORE UPDATE ON public.students
+FOR EACH ROW
+EXECUTE FUNCTION public.tg_set_updated_at();
+
+
+
+CREATE INDEX idx_students_name
+ON public.students(full_name);
+
+
+CREATE INDEX idx_students_cpf
+ON public.students(cpf);
+
+
+
+-- ============ ENROLLMENTS ============
+
+CREATE TABLE public.enrollments (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  student_id uuid NOT NULL
+  REFERENCES public.students(id)
+  ON DELETE CASCADE,
+
+
+  class_id uuid NOT NULL
+  REFERENCES public.class_groups(id)
+  ON DELETE CASCADE,
+
+
+  enrollment_date date NOT NULL DEFAULT current_date,
+
+
+  status public.enrollment_status NOT NULL DEFAULT 'pending',
+
+
+  final_grade numeric(5,2),
+
+
+  notes text,
+
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+
+  UNIQUE(student_id, class_id)
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.enrollments
+TO authenticated;
+
+
+GRANT ALL
+ON public.enrollments
+TO service_role;
+
+
+
+ALTER TABLE public.enrollments ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "enrollments_all_authenticated"
+ON public.enrollments
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE TRIGGER trg_enrollments_updated
+BEFORE UPDATE ON public.enrollments
+FOR EACH ROW
+EXECUTE FUNCTION public.tg_set_updated_at();
+
+
+
+CREATE INDEX idx_enrollments_student
+ON public.enrollments(student_id);
+
+
+CREATE INDEX idx_enrollments_class
+ON public.enrollments(class_id);
+
+
+
+-- ============ ATTENDANCE RECORDS ============
+
+CREATE TABLE public.attendance_records (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  enrollment_id uuid NOT NULL
+  REFERENCES public.enrollments(id)
+  ON DELETE CASCADE,
+
+
+  attendance_date date NOT NULL,
+
+
+  present boolean NOT NULL DEFAULT false,
+
+
+  observation text,
+
+
+  created_at timestamptz NOT NULL DEFAULT now()
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.attendance_records
+TO authenticated;
+
+
+GRANT ALL
+ON public.attendance_records
+TO service_role;
+
+
+
+ALTER TABLE public.attendance_records ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "attendance_all_authenticated"
+ON public.attendance_records
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE INDEX idx_attendance_enrollment
+ON public.attendance_records(enrollment_id);
+
+
+
+-- ============ ASSESSMENTS ============
+
+CREATE TABLE public.assessments (
+
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+
+  enrollment_id uuid NOT NULL
+  REFERENCES public.enrollments(id)
+  ON DELETE CASCADE,
+
+
+  grade numeric(5,2),
+
+
+  passed boolean DEFAULT false,
+
+
+  comments text,
+
+
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+
+  UNIQUE(enrollment_id)
+
+);
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON public.assessments
+TO authenticated;
+
+
+GRANT ALL
+ON public.assessments
+TO service_role;
+
+
+
+ALTER TABLE public.assessments ENABLE ROW LEVEL SECURITY;
+
+
+
+CREATE POLICY "assessments_all_authenticated"
+ON public.assessments
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+
+CREATE TRIGGER trg_assessments_updated
+BEFORE UPDATE ON public.assessments
+FOR EACH ROW
+EXECUTE FUNCTION public.tg_set_updated_at();
+
