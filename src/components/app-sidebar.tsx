@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   BookOpen,
   LogOut,
   Siren,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +21,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -33,36 +36,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 
-const sections: { label: string; items: { title: string; url: string; icon: any }[] }[] = [
+const sections: { label: string; key: string; items: { title: string; url: string; icon: any }[] }[] = [
   {
-    label: "Operação",
+    label: "Dashboard",
+    key: "dashboard",
+    items: [{ title: "Central", url: "/", icon: LayoutDashboard }],
+  },
+  {
+    label: "Operacional",
+    key: "operacional",
     items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard },
       { title: "Associados", url: "/associates", icon: Users },
       { title: "Mensalidades", url: "/fees", icon: Receipt },
-    ],
-  },
-  {
-    label: "Gestão",
-    items: [
       { title: "Financeiro", url: "/finance", icon: Wallet },
       { title: "Estoque", url: "/inventory", icon: Boxes },
-    ],
-  },
-  {
-    label: "Pessoal",
-    items: [
-      { title: "Colaboradores", url: "/staff", icon: ShieldCheck },
+      { title: "Funcionários", url: "/staff", icon: ShieldCheck },
       { title: "Escalas", url: "/shifts", icon: CalendarDays },
+      { title: "Relatórios", url: "/reports", icon: FileBarChart },
+      { title: "Capacitação", url: "/capacitacao", icon: BookOpen },
     ],
-  },
-  {
-    label: "Análise",
-    items: [{ title: "Relatórios", url: "/reports", icon: FileBarChart }],
-  },
-  {
-    label: "Centro de Capacitação",
-    items: [{ title: "Capacitação", url: "/capacitacao", icon: BookOpen }],
   },
 ];
 
@@ -72,6 +64,10 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useCurrentUser();
   const navigate = useNavigate();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    dashboard: true,
+    operacional: true,
+  });
 
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
@@ -79,6 +75,10 @@ export function AppSidebar() {
     await supabase.auth.signOut();
     toast.success("Sessão encerrada");
     navigate({ to: "/auth", replace: true });
+  };
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -92,37 +92,56 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-1">
-        {sections.map((section) => (
-          <SidebarGroup key={section.label}>
-            {!collapsed && (
-              <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80">
-                {section.label}
-              </SidebarGroupLabel>
-            )}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {section.items.map((item) => {
-                  const active = isActive(item.url);
-                  return (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={active}
-                        tooltip={collapsed ? item.title : undefined}
-                        className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary"
-                      >
-                        <Link to={item.url} className="flex items-center gap-3">
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="font-medium">{item.title}</span>}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {sections.map((section) => {
+          const open = openGroups[section.key];
+          return (
+            <SidebarGroup key={section.key}>
+              <div className="relative">
+                {!collapsed && (
+                  <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80">
+                    {section.label}
+                  </SidebarGroupLabel>
+                )}
+                {!collapsed && (
+                  <SidebarGroupAction asChild>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      onClick={() => toggleGroup(section.key)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"}`}
+                      />
+                    </button>
+                  </SidebarGroupAction>
+                )}
+              </div>
+              <SidebarGroupContent className={open || collapsed ? "" : "hidden"}>
+                <SidebarMenu>
+                  {section.items.map((item) => {
+                    const active = isActive(item.url);
+                    return (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={collapsed ? item.title : undefined}
+                          className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary"
+                        >
+                          <Link to={item.url} className="flex items-center gap-3">
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            {!collapsed && <span className="font-medium">{item.title}</span>}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/60 p-3">
