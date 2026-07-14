@@ -33,9 +33,9 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChan
     }
   }, [open]);
 
-  const { data = [], isFetching } = useQuery(
-    ["global-search", query],
-    async () => {
+  const { data = [], isFetching } = useQuery({
+    queryKey: ["global-search", query],
+    queryFn: async () => {
       const term = query.trim();
       if (term.length < 2) return [] as SearchItem[];
 
@@ -118,12 +118,10 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChan
 
       return items;
     },
-    {
-      enabled: open,
-      staleTime: 1000 * 60 * 5,
-      keepPreviousData: true,
-    },
-  );
+    enabled: open,
+    staleTime: 1000 * 60 * 5,
+    keepPreviousData: true,
+  });
 
   const grouped = useMemo(() => {
     const groups = new Map<string, SearchItem[]>();
