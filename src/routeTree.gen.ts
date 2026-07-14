@@ -19,6 +19,9 @@ import { Route as AuthenticatedInventoryRouteImport } from './routes/_authentica
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedFeesRouteImport } from './routes/_authenticated/fees'
 import { Route as AuthenticatedAssociatesRouteImport } from './routes/_authenticated/associates'
+import { Route as AuthenticatedCapacitacaoIndexRouteImport } from './routes/_authenticated/capacitacao/index'
+import { Route as AuthenticatedCapacitacaoCoursesRouteImport } from './routes/_authenticated/capacitacao/courses'
+import { Route as AuthenticatedCapacitacaoCourseCategoriesRouteImport } from './routes/_authenticated/capacitacao/course-categories'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -69,6 +72,24 @@ const AuthenticatedAssociatesRoute = AuthenticatedAssociatesRouteImport.update({
   path: '/associates',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCapacitacaoIndexRoute =
+  AuthenticatedCapacitacaoIndexRouteImport.update({
+    id: '/capacitacao/',
+    path: '/capacitacao/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCapacitacaoCoursesRoute =
+  AuthenticatedCapacitacaoCoursesRouteImport.update({
+    id: '/capacitacao/courses',
+    path: '/capacitacao/courses',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCapacitacaoCourseCategoriesRoute =
+  AuthenticatedCapacitacaoCourseCategoriesRouteImport.update({
+    id: '/capacitacao/course-categories',
+    path: '/capacitacao/course-categories',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -80,6 +101,9 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/capacitacao/course-categories': typeof AuthenticatedCapacitacaoCourseCategoriesRoute
+  '/capacitacao/courses': typeof AuthenticatedCapacitacaoCoursesRoute
+  '/capacitacao/': typeof AuthenticatedCapacitacaoIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -91,6 +115,9 @@ export interface FileRoutesByTo {
   '/shifts': typeof AuthenticatedShiftsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/': typeof AuthenticatedIndexRoute
+  '/capacitacao/course-categories': typeof AuthenticatedCapacitacaoCourseCategoriesRoute
+  '/capacitacao/courses': typeof AuthenticatedCapacitacaoCoursesRoute
+  '/capacitacao': typeof AuthenticatedCapacitacaoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,6 +131,9 @@ export interface FileRoutesById {
   '/_authenticated/shifts': typeof AuthenticatedShiftsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/capacitacao/course-categories': typeof AuthenticatedCapacitacaoCourseCategoriesRoute
+  '/_authenticated/capacitacao/courses': typeof AuthenticatedCapacitacaoCoursesRoute
+  '/_authenticated/capacitacao/': typeof AuthenticatedCapacitacaoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,6 +147,9 @@ export interface FileRouteTypes {
     | '/reports'
     | '/shifts'
     | '/staff'
+    | '/capacitacao/course-categories'
+    | '/capacitacao/courses'
+    | '/capacitacao/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -128,6 +161,9 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/staff'
     | '/'
+    | '/capacitacao/course-categories'
+    | '/capacitacao/courses'
+    | '/capacitacao'
   id:
     | '__root__'
     | '/_authenticated'
@@ -140,6 +176,9 @@ export interface FileRouteTypes {
     | '/_authenticated/shifts'
     | '/_authenticated/staff'
     | '/_authenticated/'
+    | '/_authenticated/capacitacao/course-categories'
+    | '/_authenticated/capacitacao/courses'
+    | '/_authenticated/capacitacao/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -219,6 +258,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssociatesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/capacitacao/': {
+      id: '/_authenticated/capacitacao/'
+      path: '/capacitacao'
+      fullPath: '/capacitacao/'
+      preLoaderRoute: typeof AuthenticatedCapacitacaoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/capacitacao/courses': {
+      id: '/_authenticated/capacitacao/courses'
+      path: '/capacitacao/courses'
+      fullPath: '/capacitacao/courses'
+      preLoaderRoute: typeof AuthenticatedCapacitacaoCoursesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/capacitacao/course-categories': {
+      id: '/_authenticated/capacitacao/course-categories'
+      path: '/capacitacao/course-categories'
+      fullPath: '/capacitacao/course-categories'
+      preLoaderRoute: typeof AuthenticatedCapacitacaoCourseCategoriesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -231,6 +291,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedShiftsRoute: typeof AuthenticatedShiftsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedCapacitacaoCourseCategoriesRoute: typeof AuthenticatedCapacitacaoCourseCategoriesRoute
+  AuthenticatedCapacitacaoCoursesRoute: typeof AuthenticatedCapacitacaoCoursesRoute
+  AuthenticatedCapacitacaoIndexRoute: typeof AuthenticatedCapacitacaoIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -242,6 +305,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedShiftsRoute: AuthenticatedShiftsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedCapacitacaoCourseCategoriesRoute:
+    AuthenticatedCapacitacaoCourseCategoriesRoute,
+  AuthenticatedCapacitacaoCoursesRoute: AuthenticatedCapacitacaoCoursesRoute,
+  AuthenticatedCapacitacaoIndexRoute: AuthenticatedCapacitacaoIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

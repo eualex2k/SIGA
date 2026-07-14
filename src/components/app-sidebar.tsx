@@ -8,6 +8,7 @@ import {
   CalendarDays,
   ShieldCheck,
   FileBarChart,
+  BookOpen,
   LogOut,
   Siren,
 } from "lucide-react";
@@ -58,6 +59,10 @@ const sections: { label: string; items: { title: string; url: string; icon: any 
   {
     label: "Análise",
     items: [{ title: "Relatórios", url: "/reports", icon: FileBarChart }],
+  },
+  {
+    label: "Centro de Capacitação",
+    items: [{ title: "Capacitação", url: "/capacitacao", icon: BookOpen }],
   },
 ];
 
