@@ -9,9 +9,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,9 +64,16 @@ function FinancePage() {
     },
   });
 
-  const filtered = useMemo(() => tab === "all" ? txs : txs.filter((t: any) => t.type === tab), [txs, tab]);
-  const totalIn = txs.filter((t: any) => t.type === "income").reduce((s: number, t: any) => s + Number(t.amount), 0);
-  const totalOut = txs.filter((t: any) => t.type === "expense").reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const filtered = useMemo(
+    () => (tab === "all" ? txs : txs.filter((t: any) => t.type === tab)),
+    [txs, tab],
+  );
+  const totalIn = txs
+    .filter((t: any) => t.type === "income")
+    .reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const totalOut = txs
+    .filter((t: any) => t.type === "expense")
+    .reduce((s: number, t: any) => s + Number(t.amount), 0);
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -64,7 +91,9 @@ function FinancePage() {
 
       // If a receipt file exists, delete it from storage
       if (tx?.receipt_path) {
-        const { error: storageErr } = await supabase.storage.from("receipts").remove([tx.receipt_path]);
+        const { error: storageErr } = await supabase.storage
+          .from("receipts")
+          .remove([tx.receipt_path]);
         if (storageErr) console.error("Failed to delete receipt file:", storageErr);
       }
     },
@@ -78,8 +107,13 @@ function FinancePage() {
   });
 
   const handleViewReceipt = async (receiptPath: string) => {
-    const { data, error } = await supabase.storage.from("receipts").createSignedUrl(receiptPath, 60);
-    if (error) { toast.error("Erro ao gerar URL do comprovante"); return; }
+    const { data, error } = await supabase.storage
+      .from("receipts")
+      .createSignedUrl(receiptPath, 60);
+    if (error) {
+      toast.error("Erro ao gerar URL do comprovante");
+      return;
+    }
     window.open(data?.signedUrl, "_blank");
   };
 
@@ -92,7 +126,9 @@ function FinancePage() {
         actions={
           <div className="flex gap-2 flex-wrap">
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="30">30 dias</SelectItem>
                 <SelectItem value="90">90 dias</SelectItem>
@@ -106,17 +142,45 @@ function FinancePage() {
                   <Plus className="mr-2 h-4 w-4" /> Lançamento
                 </Button>
               </DialogTrigger>
-              <TxDialog onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["finance"] }); }} />
+              <TxDialog
+                onDone={() => {
+                  setOpen(false);
+                  qc.invalidateQueries({ queryKey: ["finance"] });
+                }}
+              />
             </Dialog>
-            <MembershipPaymentDialog onDone={() => { qc.invalidateQueries({ queryKey: ["finance"] }); }} />
+            <MembershipPaymentDialog
+              onDone={() => {
+                qc.invalidateQueries({ queryKey: ["finance"] });
+              }}
+            />
           </div>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card><CardContent className="p-4"><p className="text-xs uppercase text-muted-foreground">Entradas</p><p className="mt-1 text-xl font-bold text-emerald-400">{fmtBRL(totalIn)}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs uppercase text-muted-foreground">Saídas</p><p className="mt-1 text-xl font-bold text-primary">{fmtBRL(totalOut)}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs uppercase text-muted-foreground">Saldo do período</p><p className={`mt-1 text-xl font-bold ${totalIn - totalOut >= 0 ? "text-emerald-400" : "text-primary"}`}>{fmtBRL(totalIn - totalOut)}</p></CardContent></Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase text-muted-foreground">Entradas</p>
+            <p className="mt-1 text-xl font-bold text-emerald-400">{fmtBRL(totalIn)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase text-muted-foreground">Saídas</p>
+            <p className="mt-1 text-xl font-bold text-primary">{fmtBRL(totalOut)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase text-muted-foreground">Saldo do período</p>
+            <p
+              className={`mt-1 text-xl font-bold ${totalIn - totalOut >= 0 ? "text-emerald-400" : "text-primary"}`}
+            >
+              {fmtBRL(totalIn - totalOut)}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -141,45 +205,88 @@ function FinancePage() {
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Carregando…</TableCell></TableRow>
-                  ) : filtered.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Sem lançamentos.</TableCell></TableRow>
-                  ) : filtered.map((t: any) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="text-sm text-muted-foreground">{fmtDate(t.transaction_date)}</TableCell>
-                      <TableCell>
-                        <p className="font-medium">{t.description}</p>
-                        {t.associates && <p className="text-xs text-muted-foreground">{t.associates.full_name}</p>}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-sm">
-                        {t.finance_categories ? (
-                          <Badge variant="outline" style={{ borderColor: t.finance_categories.color + "55", color: t.finance_categories.color }}>{t.finance_categories.name}</Badge>
-                        ) : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {t.type === "income" ? (
-                          <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400"><TrendingUp className="h-3 w-3" /> Entrada</span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-xs font-semibold text-primary"><TrendingDown className="h-3 w-3" /> Saída</span>
-                        )}
-                      </TableCell>
-                      <TableCell className={`text-right font-mono font-semibold ${t.type === "income" ? "text-emerald-400" : "text-primary"}`}>
-                        {t.type === "income" ? "+" : "−"} {fmtBRL(t.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {t.receipt_path && (
-                            <Button size="icon" variant="ghost" onClick={() => handleViewReceipt(t.receipt_path)} title="Ver comprovante">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button size="icon" variant="ghost" onClick={() => del.mutate(t.id)} className="text-destructive hover:text-destructive" title="Excluir">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                        Carregando…
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                        Sem lançamentos.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filtered.map((t: any) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {fmtDate(t.transaction_date)}
+                        </TableCell>
+                        <TableCell>
+                          <p className="font-medium">{t.description}</p>
+                          {t.associates && (
+                            <p className="text-xs text-muted-foreground">
+                              {t.associates.full_name}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-sm">
+                          {t.finance_categories ? (
+                            <Badge
+                              variant="outline"
+                              style={{
+                                borderColor: t.finance_categories.color + "55",
+                                color: t.finance_categories.color,
+                              }}
+                            >
+                              {t.finance_categories.name}
+                            </Badge>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {t.type === "income" ? (
+                            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400">
+                              <TrendingUp className="h-3 w-3" /> Entrada
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                              <TrendingDown className="h-3 w-3" /> Saída
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell
+                          className={`text-right font-mono font-semibold ${t.type === "income" ? "text-emerald-400" : "text-primary"}`}
+                        >
+                          {t.type === "income" ? "+" : "−"} {fmtBRL(t.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {t.receipt_path && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleViewReceipt(t.receipt_path)}
+                                title="Ver comprovante"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => del.mutate(t.id)}
+                              className="text-destructive hover:text-destructive"
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -205,7 +312,8 @@ function TxDialog({ onDone }: { onDone: () => void }) {
 
   const { data: cats = [] } = useQuery({
     queryKey: ["cats"],
-    queryFn: async () => (await supabase.from("finance_categories").select("*").order("name")).data ?? [],
+    queryFn: async () =>
+      (await supabase.from("finance_categories").select("*").order("name")).data ?? [],
   });
 
   const cats4Type = cats.filter((c: any) => c.type === type);
@@ -240,47 +348,103 @@ function TxDialog({ onDone }: { onDone: () => void }) {
       receipt_path: receiptPath,
     });
     setSaving(false);
-    if (error) { toast.error("Erro", { description: error.message }); return; }
+    if (error) {
+      toast.error("Erro", { description: error.message });
+      return;
+    }
     toast.success("Lançamento registrado");
     onDone();
   };
 
   return (
     <DialogContent className="max-w-lg">
-      <DialogHeader><DialogTitle>Novo lançamento</DialogTitle></DialogHeader>
+      <DialogHeader>
+        <DialogTitle>Novo lançamento</DialogTitle>
+      </DialogHeader>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2 space-y-2"><Label>Tipo</Label>
-          <Select value={type} onValueChange={(v: any) => { setType(v); setCategoryId(undefined); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+        <div className="sm:col-span-2 space-y-2">
+          <Label>Tipo</Label>
+          <Select
+            value={type}
+            onValueChange={(v: any) => {
+              setType(v);
+              setCategoryId(undefined);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="income">Entrada (receita)</SelectItem>
               <SelectItem value="expense">Saída (despesa)</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2"><Label>Valor *</Label><Input type="number" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
-        <div className="space-y-2"><Label>Data</Label><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
-        <div className="sm:col-span-2 space-y-2"><Label>Descrição *</Label><Input required value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-        <div className="space-y-2"><Label>Categoria</Label>
+        <div className="space-y-2">
+          <Label>Valor *</Label>
+          <Input
+            type="number"
+            step="0.01"
+            required
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Data</Label>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+        <div className="sm:col-span-2 space-y-2">
+          <Label>Descrição *</Label>
+          <Input required value={description} onChange={(e) => setDescription(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Categoria</Label>
           <Select value={categoryId} onValueChange={setCategoryId}>
-            <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-            <SelectContent>{cats4Type.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecionar" />
+            </SelectTrigger>
+            <SelectContent>
+              {cats4Type.map((c: any) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2"><Label>Forma de pagto</Label>
+        <div className="space-y-2">
+          <Label>Forma de pagto</Label>
           <Select value={method} onValueChange={setMethod}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              <SelectItem value="PIX">PIX</SelectItem><SelectItem value="Dinheiro">Dinheiro</SelectItem><SelectItem value="Cartão">Cartão</SelectItem><SelectItem value="Transferência">Transferência</SelectItem><SelectItem value="Boleto">Boleto</SelectItem>
+              <SelectItem value="PIX">PIX</SelectItem>
+              <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+              <SelectItem value="Cartão">Cartão</SelectItem>
+              <SelectItem value="Transferência">Transferência</SelectItem>
+              <SelectItem value="Boleto">Boleto</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="sm:col-span-2 space-y-2">
           <Label>Comprovante (JPEG, PNG, PDF)</Label>
-          <Input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] ?? null)} />
+          <Input
+            type="file"
+            accept=".jpg,.jpeg,.png,.pdf"
+            onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+          />
         </div>
-        <div className="sm:col-span-2 space-y-2"><Label>Observação</Label><Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-        <DialogFooter className="sm:col-span-2"><Button type="submit" disabled={saving} className="glow-red">{saving ? "Salvando…" : "Registrar"}</Button></DialogFooter>
+        <div className="sm:col-span-2 space-y-2">
+          <Label>Observação</Label>
+          <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <DialogFooter className="sm:col-span-2">
+          <Button type="submit" disabled={saving} className="glow-red">
+            {saving ? "Salvando…" : "Registrar"}
+          </Button>
+        </DialogFooter>
       </form>
     </DialogContent>
   );

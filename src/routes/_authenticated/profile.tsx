@@ -35,6 +35,11 @@ type ProfileForm = {
   avatar_url: string;
 };
 
+type ProfileRow = ProfileData & {
+  permissions?: string[] | null;
+  role?: string | null;
+};
+
 function ProfilePage() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery<ProfileData | null>(["profile"], async () => {
@@ -48,8 +53,8 @@ function ProfilePage() {
     }
 
     const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id, email, full_name, phone, avatar_url, updated_at")
+      .from<ProfileRow>("profiles")
+      .select("id, email, full_name, phone, avatar_url, updated_at, role, permissions")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -65,14 +70,15 @@ function ProfilePage() {
       avatar_url: profile?.avatar_url ?? "",
       updated_at: profile?.updated_at ?? user?.created_at ?? null,
       role:
-        (profile as any)?.role ??
+        profile?.role ??
         (user.user_metadata?.role_title as string | undefined) ??
         (user.user_metadata?.role as string | undefined) ??
         null,
-      permissions:
-        Array.isArray(user.user_metadata?.permissions)
-          ? (user.user_metadata.permissions as string[]).join(", ")
-          : (user.user_metadata?.permissions as string | null) ?? null,
+      permissions: Array.isArray(profile?.permissions)
+        ? profile.permissions.join(", ")
+        : Array.isArray(user.user_metadata?.permissions)
+        ? (user.user_metadata.permissions as string[]).join(", ")
+        : ((user.user_metadata?.permissions as string | null) ?? null),
     };
   });
 
@@ -96,46 +102,53 @@ function ProfilePage() {
     }
   }, [data]);
 
-  const role = useMemo(
-    () => data?.role ?? "Não definido",
-    [data],
-  );
+  const role = useMemo(() => data?.role ?? "Não definido", [data]);
 
   const permissionsText = useMemo(
     () => data?.permissions ?? "Sem permissões específicas informadas",
     [data],
   );
 
-  const updateProfile = useMutation(async () => {
-    if (!form.id) {
-      throw new Error("Usuário inválido.");
-    }
+  const updateProfile = useMutation(
+    async () => {
+      if (!form.id) {
+        throw new Error("Usuário inválido.");
+      }
 
-    const [{ error: authError }, { error: profileError }] = await Promise.all([
-      supabase.auth.updateUser({ data: { full_name: form.full_name } }),
-      supabase.from("profiles").upsert(
-        {
-          id: form.id,
-          email: form.email,
-          full_name: form.full_name || null,
-          phone: form.phone || null,
-          avatar_url: form.avatar_url || null,
-        },
-        { returning: "representation" },
-      ),
-    ]);
+      const [{ error: authError }, { error: profileError }] = await Promise.all([
+        supabase.auth.updateUser({ data: { full_name: form.full_name } }),
+        supabase.from("profiles").upsert(
+          {
+            id: form.id,
+            email: form.email,
+            full_name: form.full_name || null,
+            phone: form.phone || null,
+            avatar_url: form.avatar_url || null,
+          },
+          { returning: "representation" },
+        ),
+      ]);
 
-    if (authError) throw authError;
-    if (profileError) throw profileError;
-  }, {
-    onSuccess: () => {
-      toast.success("Perfil atualizado");
-      queryClient.invalidateQueries(["profile"]);
+      if (authError) throw authError;
+      if (profileError) throw profileError;
     },
-    onError: (error: any) => {
-      toast.error("Falha ao atualizar perfil", { description: error?.message });
+    {
+      onSuccess: () => {
+        toast.success("Perfil atualizado");
+        queryClient.invalidateQueries(["profile"]);
+      },
+      onError: (error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : typeof error === "object" && error !== null && "message" in error
+            ? String((error as { message?: unknown }).message)
+            : "Ocorreu um erro desconhecido.";
+
+        toast.error("Falha ao atualizar perfil", { description: message });
+      },
     },
-  });
+  );
 
   return (
     <div className="space-y-6">
@@ -155,11 +168,15 @@ function ProfilePage() {
                 {data?.avatar_url ? (
                   <AvatarImage src={data.avatar_url} alt={data.full_name ?? "Avatar"} />
                 ) : (
-                  <AvatarFallback>{data?.full_name ? data.full_name.slice(0, 2).toUpperCase() : "AB"}</AvatarFallback>
+                  <AvatarFallback>
+                    {data?.full_name ? data.full_name.slice(0, 2).toUpperCase() : "AB"}
+                  </AvatarFallback>
                 )}
               </Avatar>
               <div>
-                <p className="text-lg font-semibold text-foreground">{data?.full_name ?? "Operador"}</p>
+                <p className="text-lg font-semibold text-foreground">
+                  {data?.full_name ?? "Operador"}
+                </p>
                 <p className="text-sm text-muted-foreground">{data?.email}</p>
               </div>
             </div>
@@ -168,7 +185,9 @@ function ProfilePage() {
               <p className="mt-2 text-sm font-semibold text-foreground">{role}</p>
             </div>
             <div className="rounded-3xl border border-border/60 bg-background/80 p-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Permissões</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                Permissões
+              </p>
               <p className="mt-2 text-sm text-foreground">{permissionsText}</p>
             </div>
           </CardContent>
@@ -223,7 +242,10 @@ function ProfilePage() {
               </div>
             </CardContent>
             <div className="flex justify-end border-t border-border/60 bg-background/50 p-4">
-              <Button onClick={() => updateProfile.mutate()} disabled={updateProfile.isLoading || isLoading}>
+              <Button
+                onClick={() => updateProfile.mutate()}
+                disabled={updateProfile.isLoading || isLoading}
+              >
                 Salvar alterações
               </Button>
             </div>

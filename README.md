@@ -10,20 +10,20 @@ Sistema de gestão financeira, administrativa e operacional da **Associação de
 - **Lovable Cloud** (Postgres + Auth + Storage gerenciados, com toda a infra Supabase por baixo)
 - **TanStack Query** para cache de dados
 - **Recharts** para gráficos
-- Deploy edge nativo no Lovable (botão *Publish*)
+- Deploy edge nativo no Lovable (botão _Publish_)
 
 ## Módulos
 
-| Módulo | Caminho | Descrição |
-| --- | --- | --- |
-| Central operacional | `/` | KPIs financeiros, alertas, escalas do dia, últimos lançamentos, fluxo de caixa |
-| Associados | `/associates` | CRUD completo com busca, filtro por status, foto, histórico |
-| Mensalidades | `/fees` | Geração mensal, controle de pagamento, identificação de atrasos |
-| Financeiro | `/finance` | Receitas, despesas, categorias, fluxo de caixa, períodos |
-| Estoque | `/inventory` | Equipamentos, uniformes, materiais com alertas de mínimo |
-| Colaboradores | `/staff` | Cadastro, valor/hora, ranking de pagamentos |
-| Escalas | `/shifts` | Plantões com data, horário e local |
-| Relatórios | `/reports` | Gráficos consolidados, exportação CSV/Excel e impressão (PDF) |
+| Módulo              | Caminho       | Descrição                                                                      |
+| ------------------- | ------------- | ------------------------------------------------------------------------------ |
+| Central operacional | `/`           | KPIs financeiros, alertas, escalas do dia, últimos lançamentos, fluxo de caixa |
+| Associados          | `/associates` | CRUD completo com busca, filtro por status, foto, histórico                    |
+| Mensalidades        | `/fees`       | Geração mensal, controle de pagamento, identificação de atrasos                |
+| Financeiro          | `/finance`    | Receitas, despesas, categorias, fluxo de caixa, períodos                       |
+| Estoque             | `/inventory`  | Equipamentos, uniformes, materiais com alertas de mínimo                       |
+| Colaboradores       | `/staff`      | Cadastro, valor/hora, ranking de pagamentos                                    |
+| Escalas             | `/shifts`     | Plantões com data, horário e local                                             |
+| Relatórios          | `/reports`    | Gráficos consolidados, exportação CSV/Excel e impressão (PDF)                  |
 
 ## Banco de dados
 

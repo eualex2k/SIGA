@@ -19,7 +19,9 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 tactical-grid">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-black text-primary drop-shadow-[0_0_24px_oklch(0.58_0.22_28/0.5)]">404</h1>
+        <h1 className="text-7xl font-black text-primary drop-shadow-[0_0_24px_oklch(0.58_0.22_28/0.5)]">
+          404
+        </h1>
         <h2 className="mt-4 text-xl font-semibold">Setor não localizado</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           A rota acionada não está no painel operacional.
@@ -51,12 +53,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Tentar novamente
           </button>
-          <a href="/" className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent">
+          <a
+            href="/"
+            className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+          >
             Central
           </a>
         </div>
@@ -71,15 +79,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "ABCUNA — Central Operacional" },
-      { name: "description", content: "Sistema de gestão financeira, administrativa e operacional da Associação de Bombeiros Civis de Uiraúna." },
+      {
+        name: "description",
+        content:
+          "Sistema de gestão financeira, administrativa e operacional da Associação de Bombeiros Civis de Uiraúna.",
+      },
       { name: "theme-color", content: "#0a0606" },
       { property: "og:title", content: "ABCUNA — Central Operacional" },
-      { property: "og:description", content: "Sistema de gestão financeira, administrativa e operacional da Associação de Bombeiros Civis de Uiraúna." },
+      {
+        property: "og:description",
+        content:
+          "Sistema de gestão financeira, administrativa e operacional da Associação de Bombeiros Civis de Uiraúna.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "ABCUNA — Central Operacional" },
-      { name: "twitter:description", content: "Sistema de gestão financeira, administrativa e operacional da Associação de Bombeiros Civis de Uiraúna." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3851c3d4-b3e9-4b07-a5b0-950cc3e031f8" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3851c3d4-b3e9-4b07-a5b0-950cc3e031f8" },
+      {
+        name: "twitter:description",
+        content:
+          "Sistema de gestão financeira, administrativa e operacional da Associação de Bombeiros Civis de Uiraúna.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3851c3d4-b3e9-4b07-a5b0-950cc3e031f8",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3851c3d4-b3e9-4b07-a5b0-950cc3e031f8",
+      },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [

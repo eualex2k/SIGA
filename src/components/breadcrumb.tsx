@@ -17,7 +17,9 @@ const LABELS: Record<string, string> = {
 };
 
 function formatSegment(segment: string) {
-  return LABELS[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+  return (
+    LABELS[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+  );
 }
 
 export function Breadcrumb() {
@@ -40,7 +42,10 @@ export function Breadcrumb() {
             {index === crumbs.length - 1 ? (
               <span className="truncate font-medium text-foreground">{crumb.label}</span>
             ) : (
-              <Link to={crumb.href} className="truncate text-muted-foreground transition-colors hover:text-foreground">
+              <Link
+                to={crumb.href}
+                className="truncate text-muted-foreground transition-colors hover:text-foreground"
+              >
                 {crumb.label}
               </Link>
             )}

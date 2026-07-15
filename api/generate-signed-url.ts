@@ -2,10 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Initialize Supabase client with service role key (server‑side only)
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 /**
  * Vercel edge function that receives a JSON body:
@@ -13,10 +10,7 @@ const supabase = createClient(
  * It validates the user session, checks permissions, finds the receipt file
  * associated to the transaction and returns a signed URL (60 s).
  */
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -34,7 +28,10 @@ export default async function handler(
   }
 
   // 3️⃣ Verify user and role
-  const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error: authErr,
+  } = await supabase.auth.getUser(token);
   if (authErr || !user) {
     return res.status(401).json({ error: "Invalid session" });
   }
@@ -61,8 +58,7 @@ export default async function handler(
   }
 
   // 5️⃣ Generate signed URL (60 seconds)
-  const { data: signed, error: signErr } = await supabase
-    .storage
+  const { data: signed, error: signErr } = await supabase.storage
     .from("receipts")
     .createSignedUrl(receiptPath, 60);
   if (signErr) {

@@ -14,6 +14,7 @@ import {
   LogOut,
   Siren,
   ChevronDown,
+  type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,7 +38,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { initials } from "@/lib/format";
 
-const sections: { label: string; key: string; items: { title: string; url: string; icon: any }[] }[] = [
+const sections: {
+  label: string;
+  key: string;
+  items: { title: string; url: string; icon: LucideIcon }[];
+}[] = [
   {
     label: "Dashboard",
     key: "dashboard",
@@ -107,7 +112,10 @@ export function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-[0_0_30px_-12px_rgba(0,0,0,0.35)]">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border bg-sidebar shadow-[0_0_30px_-12px_rgba(0,0,0,0.35)]"
+    >
       <SidebarHeader className="border-b border-sidebar-border/70 px-4 py-5">
         <div className="flex items-center gap-3">
           <AbcunaBrand size="sm" showText={!collapsed} />

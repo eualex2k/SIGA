@@ -11,7 +11,12 @@ interface Props {
 
 export function PageHeader({ title, subtitle, icon, actions, className }: Props) {
   return (
-    <div className={cn("flex flex-col gap-3 border-b border-border/60 pb-5 sm:flex-row sm:items-center sm:justify-between", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-3 border-b border-border/60 pb-5 sm:flex-row sm:items-center sm:justify-between",
+        className,
+      )}
+    >
       <div className="flex items-center gap-3">
         {icon && (
           <div className="flex h-11 w-11 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary glow-ring">

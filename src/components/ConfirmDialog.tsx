@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -35,7 +42,7 @@ export function ConfirmDialog({ title, message, onConfirm, open, setOpen }: Conf
             type="text"
             placeholder="Digite CONFIRMAR"
             value={confirmText}
-            onChange={e => setConfirmText(e.target.value)}
+            onChange={(e) => setConfirmText(e.target.value)}
             className="w-full rounded border p-2"
           />
         </div>
@@ -43,7 +50,11 @@ export function ConfirmDialog({ title, message, onConfirm, open, setOpen }: Conf
           <Button variant="outline" onClick={() => setOpen && setOpen(false)}>
             Cancelar
           </Button>
-          <Button disabled={!isConfirmed} onClick={handleConfirm} className="bg-destructive hover:bg-destructive/90">
+          <Button
+            disabled={!isConfirmed}
+            onClick={handleConfirm}
+            className="bg-destructive hover:bg-destructive/90"
+          >
             CONFIRMAR
           </Button>
         </DialogFooter>

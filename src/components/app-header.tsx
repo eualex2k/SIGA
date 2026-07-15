@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Bell, Moon, Search, Settings, Sun } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -42,8 +48,12 @@ export function AppHeader({ onOpenSearch }: { onOpenSearch: () => void }) {
           <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
           <AbcunaBrand size="sm" showText={false} />
           <div className="hidden min-w-[180px] flex-col gap-0 sm:flex">
-            <span className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground/80">ABCUNA</span>
-            <span className="text-sm font-semibold text-foreground">Sistema Integrado de Gestão</span>
+            <span className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground/80">
+              ABCUNA
+            </span>
+            <span className="text-sm font-semibold text-foreground">
+              Sistema Integrado de Gestão
+            </span>
           </div>
         </div>
 
@@ -90,8 +100,12 @@ export function AppHeader({ onOpenSearch }: { onOpenSearch: () => void }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>{profileLabel}</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => navigate({ to: "/profile" })}>Perfil</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })}>Configurações</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate({ to: "/profile" })}>
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })}>
+                Configurações
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={signOut}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

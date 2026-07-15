@@ -30,7 +30,9 @@ export function AbcunaBrand({ size = "md", showText = true, className, textClass
       </div>
       {showText && (
         <div className={cn("flex flex-col leading-tight", textClassName)}>
-          <span className={cn("font-black tracking-[0.18em] text-foreground", s.title)}>ABCUNA</span>
+          <span className={cn("font-black tracking-[0.18em] text-foreground", s.title)}>
+            ABCUNA
+          </span>
           <span className={cn("uppercase tracking-[0.22em] text-muted-foreground", s.sub)}>
             Bombeiros Civis · Uiraúna
           </span>

@@ -28,29 +28,27 @@ export const useAuth = () => {
     fetchSession();
 
     // Listen to auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Log authentication events
-        try {
-          const { logAuthEvent } = await import("@/lib/authLogger");
-          await logAuthEvent(event, session?.user ?? null);
-        } catch (_) {
-          // ignore if logger not yet available
-        }
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          const u = session?.user ?? null;
-          setUser(u);
-          setRole(u ? getUserRole(u) : UserRole.VIEWER);
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
-          setRole(UserRole.VIEWER);
-        } else if (event === "USER_UPDATED") {
-          const u = session?.user ?? null;
-          setUser(u);
-          setRole(u ? getUserRole(u) : UserRole.VIEWER);
-        }
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Log authentication events
+      try {
+        const { logAuthEvent } = await import("@/lib/authLogger");
+        await logAuthEvent(event, session?.user ?? null);
+      } catch (_) {
+        // ignore if logger not yet available
       }
-    );
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        const u = session?.user ?? null;
+        setUser(u);
+        setRole(u ? getUserRole(u) : UserRole.VIEWER);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        setRole(UserRole.VIEWER);
+      } else if (event === "USER_UPDATED") {
+        const u = session?.user ?? null;
+        setUser(u);
+        setRole(u ? getUserRole(u) : UserRole.VIEWER);
+      }
+    });
 
     return () => {
       authListener?.subscription?.unsubscribe();

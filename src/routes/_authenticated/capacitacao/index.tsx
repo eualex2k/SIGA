@@ -62,11 +62,36 @@ function CapacitacaoDashboard() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard title="Categorias" value={data?.categories ?? "—"} icon={<Layers className="h-4 w-4" />} accent="text-primary" />
-        <StatCard title="Cursos" value={data?.courses ?? "—"} icon={<Bookmark className="h-4 w-4" />} accent="text-emerald-400" />
-        <StatCard title="Alunos" value={data?.students ?? "—"} icon={<Users className="h-4 w-4" />} accent="text-sky-400" />
-        <StatCard title="Matrículas" value={data?.enrollments ?? "—"} icon={<BookOpen className="h-4 w-4" />} accent="text-violet-400" />
-        <StatCard title="Certificados" value={data?.certificates ?? "—"} icon={<Badge className="h-4 w-4" />} accent="text-amber-400" />
+        <StatCard
+          title="Categorias"
+          value={data?.categories ?? "—"}
+          icon={<Layers className="h-4 w-4" />}
+          accent="text-primary"
+        />
+        <StatCard
+          title="Cursos"
+          value={data?.courses ?? "—"}
+          icon={<Bookmark className="h-4 w-4" />}
+          accent="text-emerald-400"
+        />
+        <StatCard
+          title="Alunos"
+          value={data?.students ?? "—"}
+          icon={<Users className="h-4 w-4" />}
+          accent="text-sky-400"
+        />
+        <StatCard
+          title="Matrículas"
+          value={data?.enrollments ?? "—"}
+          icon={<BookOpen className="h-4 w-4" />}
+          accent="text-violet-400"
+        />
+        <StatCard
+          title="Certificados"
+          value={data?.certificates ?? "—"}
+          icon={<Badge className="h-4 w-4" />}
+          accent="text-amber-400"
+        />
       </div>
 
       <Card>
@@ -74,17 +99,36 @@ function CapacitacaoDashboard() {
           <CardTitle className="text-base">Visão geral</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <SectionCard title="Gerenciar categorias" description="Cadastre, edite e organize as categorias de curso." href="/capacitacao/course-categories" />
-          <SectionCard title="Gerenciar cursos" description="Controle carga horária, preço e status de cada curso." href="/capacitacao/courses" />
+          <SectionCard
+            title="Gerenciar categorias"
+            description="Cadastre, edite e organize as categorias de curso."
+            href="/capacitacao/course-categories"
+          />
+          <SectionCard
+            title="Gerenciar cursos"
+            description="Controle carga horária, preço e status de cada curso."
+            href="/capacitacao/courses"
+          />
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function SectionCard({ title, description, href }: { title: string; description: string; href: string }) {
+function SectionCard({
+  title,
+  description,
+  href,
+}: {
+  title: string;
+  description: string;
+  href: string;
+}) {
   return (
-    <Link to={href} className="group block rounded-2xl border border-border/70 bg-card/80 p-5 transition hover:border-primary/60 hover:bg-primary/5">
+    <Link
+      to={href}
+      className="group block rounded-2xl border border-border/70 bg-card/80 p-5 transition hover:border-primary/60 hover:bg-primary/5"
+    >
       <p className="text-sm font-semibold text-muted-foreground">{title}</p>
       <p className="mt-3 text-sm leading-6 text-foreground">{description}</p>
       <div className="mt-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary transition group-hover:translate-x-0.5">
@@ -94,7 +138,17 @@ function SectionCard({ title, description, href }: { title: string; description:
   );
 }
 
-function StatCard({ title, value, icon, accent }: { title: string; value: number | string; icon: React.ReactNode; accent: string }) {
+function StatCard({
+  title,
+  value,
+  icon,
+  accent,
+}: {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  accent: string;
+}) {
   return (
     <Card className="border-border/70 bg-card/80">
       <CardContent className="flex items-center justify-between gap-4 p-5">
@@ -102,7 +156,9 @@ function StatCard({ title, value, icon, accent }: { title: string; value: number
           <p className="text-sm text-muted-foreground">{title}</p>
           <p className="mt-2 text-3xl font-black tracking-tight text-foreground">{value}</p>
         </div>
-        <div className={`flex h-11 w-11 items-center justify-center rounded-xl border border-current/20 bg-current/10 ${accent}`}>
+        <div
+          className={`flex h-11 w-11 items-center justify-center rounded-xl border border-current/20 bg-current/10 ${accent}`}
+        >
           {icon}
         </div>
       </CardContent>

@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,16 +31,17 @@ export function MembershipPaymentDialog({ onDone }: MembershipPaymentDialogProps
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) { toast.error("Usuário não autenticado"); return; }
+    if (!user) {
+      toast.error("Usuário não autenticado");
+      return;
+    }
     setSaving(true);
 
     // Upload receipt if provided
     let receiptPath: string | null = null;
     if (receiptFile) {
       const filePath = `mensalidades/${user.id}/${Date.now()}_${receiptFile.name}`;
-      const { data, error } = await supabase.storage
-        .from("receipts")
-        .upload(filePath, receiptFile);
+      const { data, error } = await supabase.storage.from("receipts").upload(filePath, receiptFile);
       if (error) {
         toast.error("Erro ao enviar comprovante");
         setSaving(false);
@@ -49,7 +57,10 @@ export function MembershipPaymentDialog({ onDone }: MembershipPaymentDialogProps
       receipt_path: receiptPath,
     });
     setSaving(false);
-    if (error) { toast.error("Erro ao registrar pagamento", { description: error.message }); return; }
+    if (error) {
+      toast.error("Erro ao registrar pagamento", { description: error.message });
+      return;
+    }
     toast.success("Pagamento de mensalidade registrado");
     setAmount("");
     setNotes("");
@@ -73,19 +84,29 @@ export function MembershipPaymentDialog({ onDone }: MembershipPaymentDialogProps
         <form onSubmit={submit} className="grid gap-4">
           <div className="space-y-2">
             <Label>Valor *</Label>
-            <Input type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} />
+            <Input
+              type="number"
+              step="0.01"
+              required
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label>Data *</Label>
-            <Input type="date" required value={date} onChange={e => setDate(e.target.value)} />
+            <Input type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Observação</Label>
-            <Textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
+            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Comprovante (JPEG, PNG, PDF)</Label>
-            <Input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setReceiptFile(e.target.files?.[0] ?? null)} />
+            <Input
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+            />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={saving}>

@@ -29,45 +29,82 @@ import {
   Tooltip,
 } from "recharts";
 
+type DashboardTransaction = {
+  id: string;
+  type: "income" | "expense";
+  amount: number | string;
+  description?: string | null;
+  transaction_date: string;
+};
+
+type DashboardShift = {
+  id: string;
+  shift_date: string;
+  start_time: string;
+  end_time: string;
+  location: string | null;
+  staff?: { full_name: string | null } | null;
+};
+
+type DashboardInventoryItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  min_quantity: number;
+};
+
+type DashboardData = {
+  txs: Array<{
+    type: "income" | "expense";
+    amount: number | string;
+    transaction_date: string;
+  }>;
+  associates: Array<{ id: string; status: string }>;
+  pendingFees: Array<{ status: string }>;
+  lowStock: DashboardInventoryItem[];
+  todayShifts: DashboardShift[];
+  lastTxs: DashboardTransaction[];
+  coursesCount: number;
+};
+
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
   head: () => ({ meta: [{ title: "Central · ABCUNA" }] }),
 });
 
 function Dashboard() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<DashboardData | null>({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const [
-        txs,
-        associates,
-        pendingFees,
-        lowStock,
-        todayShifts,
-        lastTxs,
-        coursesCount,
-      ] = await Promise.all([
-        supabase
-          .from("finance_transactions")
-          .select("type, amount, transaction_date")
-          .gte("transaction_date", new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10)),
-        supabase.from("associates").select("id, status", { count: "exact" }),
-        supabase
-          .from("monthly_fees")
-          .select("id, status, amount, due_date, associates(full_name)")
-          .in("status", ["pending", "overdue"]),
-        supabase.from("inventory_items").select("id, name, quantity, min_quantity").order("quantity"),
-        supabase
-          .from("shifts")
-          .select("id, shift_date, start_time, end_time, location, staff(full_name)")
-          .eq("shift_date", new Date().toISOString().slice(0, 10)),
-        supabase
-          .from("finance_transactions")
-          .select("id, type, amount, description, transaction_date")
-          .order("created_at", { ascending: false })
-          .limit(8),
-        supabase.from("courses").select("id"),
-      ]);
+      const [txs, associates, pendingFees, lowStock, todayShifts, lastTxs, coursesCount] =
+        await Promise.all([
+          supabase
+            .from("finance_transactions")
+            .select("type, amount, transaction_date")
+            .gte(
+              "transaction_date",
+              new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10),
+            ),
+          supabase.from("associates").select("id, status", { count: "exact" }),
+          supabase
+            .from("monthly_fees")
+            .select("id, status, amount, due_date, associates(full_name)")
+            .in("status", ["pending", "overdue"]),
+          supabase
+            .from("inventory_items")
+            .select("id, name, quantity, min_quantity")
+            .order("quantity"),
+          supabase
+            .from("shifts")
+            .select("id, shift_date, start_time, end_time, location, staff(full_name)")
+            .eq("shift_date", new Date().toISOString().slice(0, 10)),
+          supabase
+            .from("finance_transactions")
+            .select("id, type, amount, description, transaction_date")
+            .order("created_at", { ascending: false })
+            .limit(8),
+          supabase.from("courses").select("id"),
+        ]);
 
       return {
         txs: txs.data ?? [],
@@ -81,10 +118,14 @@ function Dashboard() {
     },
   });
 
-  const totalIn = data?.txs.filter((t) => t.type === "income").reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
-  const totalOut = data?.txs.filter((t) => t.type === "expense").reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
+  const totalIn =
+    data?.txs.filter((t) => t.type === "income").reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
+  const totalOut =
+    data?.txs.filter((t) => t.type === "expense").reduce((sum, t) => sum + Number(t.amount), 0) ??
+    0;
   const balance = totalIn - totalOut;
-  const activeAssociates = data?.associates.filter((associate) => associate.status === "active").length ?? 0;
+  const activeAssociates =
+    data?.associates.filter((associate) => associate.status === "active").length ?? 0;
   const overdueCount = data?.pendingFees.filter((fee) => fee.status === "overdue").length ?? 0;
   const lowStockCount = data?.lowStock.length ?? 0;
 
@@ -155,7 +196,9 @@ function Dashboard() {
       {(overdueCount > 0 || lowStockCount > 0) && (
         <Card className="rounded-3xl border border-primary/25 bg-primary/5 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-primary">Alertas operacionais</CardTitle>
+            <CardTitle className="text-base font-semibold text-primary">
+              Alertas operacionais
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
             {overdueCount > 0 && (
@@ -183,7 +226,9 @@ function Dashboard() {
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">Fluxo financeiro</CardTitle>
+            <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Fluxo financeiro
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72 w-full">
@@ -201,13 +246,33 @@ function Dashboard() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(236,229,210,0.14)" />
                   <XAxis dataKey="label" stroke="#c1ccd9" fontSize={12} />
-                  <YAxis stroke="#c1ccd9" fontSize={12} tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`} />
+                  <YAxis
+                    stroke="#c1ccd9"
+                    fontSize={12}
+                    tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                  />
                   <Tooltip
-                    contentStyle={{ background: "var(--popover)", borderRadius: 14, border: "1px solid rgba(236,229,210,0.14)" }}
+                    contentStyle={{
+                      background: "var(--popover)",
+                      borderRadius: 14,
+                      border: "1px solid rgba(236,229,210,0.14)",
+                    }}
                     formatter={(value: number) => fmtBRL(value)}
                   />
-                  <Area type="monotone" dataKey="entradas" stroke="#3aad85" fill="url(#cIn)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="saidas" stroke="#883935" fill="url(#cOut)" strokeWidth={2} />
+                  <Area
+                    type="monotone"
+                    dataKey="entradas"
+                    stroke="#3aad85"
+                    fill="url(#cIn)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="saidas"
+                    stroke="#883935"
+                    fill="url(#cOut)"
+                    strokeWidth={2}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -217,21 +282,29 @@ function Dashboard() {
         <div className="grid gap-6">
           <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">Escalas hoje</CardTitle>
+              <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Escalas hoje
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {(data?.todayShifts ?? []).length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma escala para hoje.</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Nenhuma escala para hoje.
+                </p>
               ) : (
-                data.todayShifts.map((shift: any) => (
-                  <div key={shift.id} className="rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm">
+                data.todayShifts.map((shift) => (
+                  <div
+                    key={shift.id}
+                    className="rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm"
+                  >
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="font-semibold text-foreground">{shift.staff?.full_name}</p>
                         <p className="text-xs text-muted-foreground">{shift.location ?? "—"}</p>
                       </div>
                       <span className="rounded-full bg-card text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground px-3 py-1">
-                        {(shift.start_time as string).slice(0, 5)}–{(shift.end_time as string).slice(0, 5)}
+                        {(shift.start_time as string).slice(0, 5)}–
+                        {(shift.end_time as string).slice(0, 5)}
                       </span>
                     </div>
                   </div>
@@ -242,19 +315,28 @@ function Dashboard() {
 
           <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">Estoque crítico</CardTitle>
+              <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Estoque crítico
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {lowStockCount === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">Todos os itens com estoque saudável.</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Todos os itens com estoque saudável.
+                </p>
               ) : (
-                data?.lowStock.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-3xl border border-warning/30 bg-warning/10 p-4 shadow-sm">
+                data?.lowStock.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-3xl border border-warning/30 bg-warning/10 p-4 shadow-sm"
+                  >
                     <div>
                       <p className="font-medium text-foreground">{item.name}</p>
                       <p className="text-xs text-muted-foreground">Mín.: {item.min_quantity}</p>
                     </div>
-                    <span className="rounded-full bg-warning/20 px-3 py-1 text-sm font-semibold text-warning">{item.quantity}</span>
+                    <span className="rounded-full bg-warning/20 px-3 py-1 text-sm font-semibold text-warning">
+                      {item.quantity}
+                    </span>
                   </div>
                 ))
               )}
@@ -266,24 +348,41 @@ function Dashboard() {
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">Últimos lançamentos</CardTitle>
+            <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Últimos lançamentos
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {(data?.lastTxs ?? []).length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">Sem registros.</p>
             ) : (
-              data.lastTxs.map((transaction: any) => (
-                <div key={transaction.id} className="flex items-center justify-between rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm">
+              data.lastTxs.map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm"
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${transaction.type === "income" ? "bg-emerald-500/15 text-emerald-400" : "bg-primary/15 text-primary"}`}>
-                      {transaction.type === "income" ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-2xl ${transaction.type === "income" ? "bg-emerald-500/15 text-emerald-400" : "bg-primary/15 text-primary"}`}
+                    >
+                      {transaction.type === "income" ? (
+                        <TrendingUp className="h-4 w-4" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4" />
+                      )}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground line-clamp-1">{transaction.description}</p>
-                      <p className="text-xs text-muted-foreground">{fmtDate(transaction.transaction_date)}</p>
+                      <p className="font-medium text-foreground line-clamp-1">
+                        {transaction.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {fmtDate(transaction.transaction_date)}
+                      </p>
                     </div>
                   </div>
-                  <span className={`font-mono font-semibold ${transaction.type === "income" ? "text-emerald-400" : "text-primary"}`}>
+                  <span
+                    className={`font-mono font-semibold ${transaction.type === "income" ? "text-emerald-400" : "text-primary"}`}
+                  >
                     {transaction.type === "income" ? "+" : "−"} {fmtBRL(transaction.amount)}
                   </span>
                 </div>
@@ -294,16 +393,26 @@ function Dashboard() {
 
         <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">Resumo rápido</CardTitle>
+            <CardTitle className="text-base font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Resumo rápido
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm">
-              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Cursos cadastrados</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{data?.coursesCount ?? 0}</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Cursos cadastrados
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {data?.coursesCount ?? 0}
+              </p>
             </div>
             <div className="rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm">
-              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Escalas hoje</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{data?.todayShifts.length ?? 0}</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Escalas hoje
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {data?.todayShifts.length ?? 0}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -312,14 +421,34 @@ function Dashboard() {
   );
 }
 
-function DashboardCard({ label, value, icon, accent, sub, loading }: { label: string; value: string; icon: React.ReactNode; accent: string; sub?: string; loading?: boolean }) {
+function DashboardCard({
+  label,
+  value,
+  icon,
+  accent,
+  sub,
+  loading,
+}: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  accent: string;
+  sub?: string;
+  loading?: boolean;
+}) {
   return (
     <Card className="relative overflow-hidden border border-border/60 bg-card/80 shadow-sm transition hover:border-primary/40 hover:shadow-lg">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">{label}</span>
-          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border border-current/15 bg-current/10 ${accent}`}>{icon}</div>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+            {label}
+          </span>
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-2xl border border-current/15 bg-current/10 ${accent}`}
+          >
+            {icon}
+          </div>
         </div>
         <p className={`mt-5 text-3xl font-black leading-none ${accent}`}>{loading ? "—" : value}</p>
         {sub && <p className="mt-2 text-sm text-muted-foreground">{sub}</p>}

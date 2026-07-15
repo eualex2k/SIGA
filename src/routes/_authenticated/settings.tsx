@@ -42,7 +42,8 @@ function SettingsPage() {
               <Input value={fullName} disabled />
             </div>
             <div className="rounded-3xl border border-border/60 bg-background/80 p-4 text-sm text-muted-foreground">
-              As configurações de conta são gerenciadas a partir do seu perfil de usuário. Para alterar dados pessoais, acesse o perfil.
+              As configurações de conta são gerenciadas a partir do seu perfil de usuário. Para
+              alterar dados pessoais, acesse o perfil.
             </div>
             <Button asChild>
               <Link to="/profile">Abrir perfil</Link>
@@ -60,7 +61,8 @@ function SettingsPage() {
               <Input value="Tema do sistema" disabled />
             </div>
             <div className="text-sm text-muted-foreground">
-              O tema pode ser alternado rapidamente pelo ícone no cabeçalho. Esta tela mantém o painel de configurações consistente e pronto para futuras preferências.
+              O tema pode ser alternado rapidamente pelo ícone no cabeçalho. Esta tela mantém o
+              painel de configurações consistente e pronto para futuras preferências.
             </div>
           </CardContent>
         </Card>

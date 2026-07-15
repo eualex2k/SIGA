@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Search, Users, BookOpen, ShieldCheck, CalendarDays, Receipt, FileText } from "lucide-react";
+import {
+  Search,
+  Users,
+  BookOpen,
+  ShieldCheck,
+  CalendarDays,
+  Receipt,
+  FileText,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +31,13 @@ type SearchItem = {
   icon: React.ReactNode;
 };
 
-export function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function GlobalSearch({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
@@ -45,11 +59,7 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChan
           .select("id, full_name")
           .ilike("full_name", `%${term}%`)
           .limit(5),
-        supabase
-          .from("courses")
-          .select("id, name")
-          .ilike("name", `%${term}%`)
-          .limit(5),
+        supabase.from("courses").select("id, name").ilike("name", `%${term}%`).limit(5),
         supabase
           .from("staff")
           .select("id, full_name, role_title")
@@ -161,19 +171,15 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChan
             {query.trim().length < 2
               ? "Digite ao menos 2 caracteres para iniciar a busca."
               : isFetching
-              ? "Buscando..."
-              : "Nenhum resultado encontrado."}
+                ? "Buscando..."
+                : "Nenhum resultado encontrado."}
           </CommandEmpty>
           {grouped.map((group, groupIndex) => (
             <div key={group.section}>
               {groupIndex > 0 && <CommandSeparator />}
               <CommandGroup heading={group.section}>
                 {group.items.map((item) => (
-                  <CommandItem
-                    key={item.id}
-                    onSelect={() => handleSelect(item)}
-                    className="gap-3"
-                  >
+                  <CommandItem key={item.id} onSelect={() => handleSelect(item)} className="gap-3">
                     {item.icon}
                     <div className="flex-1 text-left">
                       <div className="text-sm font-medium text-foreground">{item.label}</div>

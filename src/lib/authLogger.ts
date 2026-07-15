@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * Insert an authentication event into the `audit_logs` table.
@@ -13,8 +13,8 @@ export async function logAuthEvent(event: string, user: any) {
   };
 
   // Insert only, no UPDATE/DELETE policies on audit_logs.
-  const { error } = await supabase.from('audit_logs').insert(payload);
+  const { error } = await supabase.from("audit_logs").insert(payload);
   if (error) {
-    console.error('Failed to log auth event', error);
+    console.error("Failed to log auth event", error);
   }
 }
