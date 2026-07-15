@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   FileBarChart,
   BookOpen,
+  Settings,
   LogOut,
   Siren,
   ChevronDown,
@@ -47,15 +48,32 @@ const sections: { label: string; key: string; items: { title: string; url: strin
     key: "operacional",
     items: [
       { title: "Associados", url: "/associates", icon: Users },
-      { title: "Mensalidades", url: "/fees", icon: Receipt },
-      { title: "Financeiro", url: "/finance", icon: Wallet },
-      { title: "Estoque", url: "/inventory", icon: Boxes },
       { title: "Funcionários", url: "/staff", icon: ShieldCheck },
       { title: "Escalas", url: "/shifts", icon: CalendarDays },
-      { title: "Relatórios", url: "/reports", icon: FileBarChart },
-      { title: "Capacitação", url: "/capacitacao", icon: BookOpen },
     ],
   },
+  {
+    label: "Financeiro",
+    key: "financeiro",
+    items: [
+      { title: "Financeiro", url: "/finance", icon: Wallet },
+      { title: "Mensalidades", url: "/fees", icon: Receipt },
+      { title: "Relatórios", url: "/reports", icon: FileBarChart },
+    ],
+  },
+  {
+    label: "Recursos",
+    key: "recursos",
+    items: [
+      { title: "Capacitação", url: "/capacitacao", icon: BookOpen },
+      { title: "Estoque", url: "/inventory", icon: Boxes },
+    ],
+  },
+];
+
+const footerItems = [
+  { title: "Perfil", url: "/profile", icon: Users },
+  { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -67,6 +85,8 @@ export function AppSidebar() {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     dashboard: true,
     operacional: true,
+    financeiro: true,
+    recursos: true,
   });
 
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
@@ -81,24 +101,32 @@ export function AppSidebar() {
     setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const profileName = useMemo(
+    () => user?.user_metadata?.full_name ?? user?.email ?? "Operador",
+    [user],
+  );
+
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border/60 px-3 py-4">
-        {collapsed ? (
-          <AbcunaBrand size="sm" showText={false} />
-        ) : (
-          <AbcunaBrand size="md" />
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-[0_0_30px_-12px_rgba(0,0,0,0.35)]">
+      <SidebarHeader className="border-b border-sidebar-border/70 px-4 py-5">
+        <div className="flex items-center gap-3">
+          <AbcunaBrand size="sm" showText={!collapsed} />
+        </div>
+        {!collapsed && (
+          <div className="mt-4 rounded-2xl bg-sidebar-accent/80 px-3 py-2 text-xs uppercase tracking-[0.24em] text-sidebar-accent-foreground/80">
+            Sistema Integrado de Gestão
+          </div>
         )}
       </SidebarHeader>
 
-      <SidebarContent className="px-1">
+      <SidebarContent className="px-2 py-4">
         {sections.map((section) => {
           const open = openGroups[section.key];
           return (
             <SidebarGroup key={section.key}>
               <div className="relative">
                 {!collapsed && (
-                  <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80">
+                  <SidebarGroupLabel className="px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
                     {section.label}
                   </SidebarGroupLabel>
                 )}
@@ -127,7 +155,7 @@ export function AppSidebar() {
                           asChild
                           isActive={active}
                           tooltip={collapsed ? item.title : undefined}
-                          className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary"
+                          className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary"
                         >
                           <Link to={item.url} className="flex items-center gap-3">
                             <item.icon className="h-4 w-4 shrink-0" />
@@ -144,28 +172,49 @@ export function AppSidebar() {
         })}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border/60 p-3">
+      <SidebarFooter className="border-t border-sidebar-border/70 px-4 py-4">
         {!collapsed && (
-          <div className="mb-3 flex items-center gap-3 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/15 text-sm font-bold text-primary">
-              {initials(user?.user_metadata?.full_name || user?.email)}
+          <div className="mb-4 rounded-3xl border border-sidebar-border/70 bg-sidebar-accent/70 p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-sm font-semibold text-primary">
+                {initials(profileName)}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">{profileName}</p>
+                <p className="truncate text-[11px] text-muted-foreground">{user?.email}</p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold">{user?.user_metadata?.full_name || "Operador"}</p>
-              <p className="truncate text-[10px] text-muted-foreground">{user?.email}</p>
-            </div>
-            <Siren className="h-4 w-4 text-primary animate-pulse" />
           </div>
         )}
-        <Button
-          variant="ghost"
-          size={collapsed ? "icon" : "sm"}
-          onClick={signOut}
-          className="w-full justify-start gap-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && "Encerrar sessão"}
-        </Button>
+        <div className="grid gap-2">
+          {footerItems.map((item) => {
+            const active = isActive(item.url);
+            return (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={active}
+                  tooltip={collapsed ? item.title : undefined}
+                  className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                >
+                  <Link to={item.url} className="flex items-center gap-3">
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span className="font-medium">{item.title}</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+          <Button
+            variant="ghost"
+            size={collapsed ? "icon" : "sm"}
+            onClick={signOut}
+            className="w-full justify-start gap-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+            {!collapsed && "Encerrar sessão"}
+          </Button>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
